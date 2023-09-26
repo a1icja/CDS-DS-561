@@ -4,7 +4,7 @@
 
 Implementation of PageRank across files on a GCP Bucket
 
-Made for CDS DS 561: Cloud Computing
+Made for CDS DS 561: Cloud Computing  
 Professor: [Leonidas Kontothanassis](https://www.bu.edu/cds-faculty/profile/kthanasi/)
 
 ---
