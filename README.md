@@ -1,7 +1,5 @@
 # GCP Bucket PageRank
 
-[GitHub](https://github.com/braxton/GCP-Bucket-PageRank)
-
 Implementation of PageRank across files on a GCP Bucket
 
 Made for CDS DS 561: Cloud Computing  
