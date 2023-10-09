@@ -1,7 +1,5 @@
 # GCP Cloud Functions and Pub/Sub
 
-## [GitHub](https://github.com/braxton/GCP-Cloud-Fn-PubSub)
-
 Made for CDS DS 561: Cloud Computing  
 Professor: [Leonidas Kontothanassis](https://www.bu.edu/cds-faculty/profile/kthanasi/)
 
