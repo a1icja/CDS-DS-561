@@ -88,7 +88,7 @@ python main.py --project_id <project-id> --subscription_id <subscription-id> --s
 An example of the second command would be:
 
 ```bash
-python3 main.py --project_id ds561-amahr --subscription_id banned-countries-sub --service_acct_json ds561-amahr-7687738fe441.json
+python3 main.py --project_id ds561-amahr --subscription_id banned-countries-sub --service_acct_json ds561-amahr-20ff1faf3f73.json
 ```
 
 4. In a third terminal tab, run the provided http client:
