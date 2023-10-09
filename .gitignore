@@ -1,4 +1,1 @@
-.venv/
-.vscode/
-files/
-.DS_Store
+**/.DS_Store
