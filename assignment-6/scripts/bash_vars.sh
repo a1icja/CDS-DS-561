@@ -3,11 +3,11 @@
 # Project
 export GCP_PROJECT="ds561-amahr"
 
-# Cloud SQL - Instance, Database
+# Cloud SQL
 export CLOUD_SQL_INSTANCE_NAME="$GCP_PROJECT-hw5-db-instance"
 export CLOUD_SQL_DATABASE_NAME="hw5-db"
 
-# Cloud Storage - Bucket
+# Cloud Storage
 export CSV_BUCKET_NAME="gs://$GCP_PROJECT-hw6"
 
 # Script VM
