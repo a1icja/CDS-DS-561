@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "assignment-7"
+version = "0.1.0"
+description = ""
+authors = ["Alicja Mahr <bmahr@bu.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+apache-beam = {extras = ["gcp", "test", "docs"], version = "^2.51.0"}
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
