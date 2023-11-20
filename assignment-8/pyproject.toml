@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "ds561-a8"
+version = "0.1.0"
+description = ""
+authors = ["Alicja Mahr <bmahr@bu.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+flask = "^3.0.0"
+google-cloud-storage = "^2.12.0"
+waitress = "^2.1.2"
+certifi = "^2023.11.17"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

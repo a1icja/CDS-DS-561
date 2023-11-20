@@ -15,6 +15,7 @@ _Assignment 1 is missing due to it being a simple introduction to GCP that did n
 - [Assignment 5](assignment-5/README.md) - CloudSQL
 - [Assignment 6](assignment-6/README.md) - Data Classification with GCP VMs and CloudSQL
 - [Assignment 7](assignment-7/README.md) - Apache Beam and Dataflow
+- [Assignment 8](assignment-8/README.md) - GCP Load Balancers and VMs
 
 ## License
 
