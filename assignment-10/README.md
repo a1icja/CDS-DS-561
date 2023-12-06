@@ -129,7 +129,7 @@ Deleted Bucket:
 
 Deleted SQL instance:
 
-![](./assets/part7-sql-instance.png)
+![](./assets/part7-sql.png)
 
 Deleted Pub/Sub topic:
 
