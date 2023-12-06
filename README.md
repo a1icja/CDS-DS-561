@@ -17,6 +17,7 @@ _Assignment 1 is missing due to it being a simple introduction to GCP that did n
 - [Assignment 7](assignment-7/README.md) - Apache Beam and Dataflow
 - [Assignment 8](assignment-8/README.md) - GCP Load Balancers and VMs
 - [Assignment 9](assignment-9/README.md) - GKE and GCP Pub/Sub
+- [Assignment 10](assignment-10/README.md) - Google Deployment Manager
 
 ## License
 

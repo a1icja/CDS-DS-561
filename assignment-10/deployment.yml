@@ -1,0 +1,269 @@
+resources:
+  - name: iam-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: ds561-amahr-hw10-sa
+      displayName: ds561-amahr-hw10-sa
+  - name: mini-web-bucket
+    type: storage.v1.bucket
+    properties:
+      name: mini-web-bucket
+      location: us-east4
+  - name: cloudsql-instance
+    type: sqladmin.v1beta4.instance
+    properties:
+      name: ds561-amahr-hw10-db
+      region: us-east4
+      zone: us-east4-a
+      databaseVersion: MYSQL_8_0_35
+      rootPassword: trj-RHP0hvz2kcw1yqr
+      maxDiskSize: 100000000000 # 100GB
+      settings:
+        tier: db-custom-4-15360
+        edition: ENTERPRISE
+        storageAutoResizeLimit: "0"
+        ipConfiguration:
+          ipv4Enabled: true
+          authorizedNetworks:
+            - value: 0.0.0.0/0
+              kind: sql#aclEntry
+  - name: cloudsql-db
+    type: sqladmin.v1beta4.database
+    properties:
+      name: ds561-amahr-hw10-db
+      instance: $(ref.cloudsql-instance.name)
+  - name: pubsub-topic
+    type: pubsub.v1.topic
+    properties:
+      topic: ds561-amahr-hw10-topic
+  - name: pubsub-subscription
+    type: pubsub.v1.subscription
+    properties:
+      subscription: ds561-amahr-hw10-subscription
+      topic: $(ref.pubsub-topic.name)
+      ackDeadlineSeconds: 60
+  - name: iam-policy-binding-main-bucket
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: ds561-amahr-hw10
+      role: roles/storage.objectViewer
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: iam-policy-binding-mini-web-bucket
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: $(ref.mini-web-bucket.name)
+      role: roles/storage.objectAdmin
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: iam-policy-binding-mini-web-bucket-public
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: $(ref.mini-web-bucket.name)
+      role: roles/storage.objectViewer
+      member: allUsers
+  - name: iam-policy-binding-cloudsql
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: ds561-amahr
+      role: roles/cloudsql.client
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: iam-policy-binding-pubsub-publish
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: ds561-amahr
+      role: roles/pubsub.publisher
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: iam-policy-binding-pubsub-subscribe
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: ds561-amahr
+      role: roles/pubsub.subscriber
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: iam-policy-binding-logging
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: ds561-amahr
+      role: roles/logging.logWriter
+      member: serviceAccount:$(ref.iam-service-account.email)
+  - name: gcp-firewall
+    type: compute.v1.firewall
+    properties:
+      network: global/networks/default
+      targetTags:
+        - hw10-web-server
+      allowed:
+        - IPProtocol: tcp
+          ports:
+            - 80
+            - 443
+  - name: gce-server-ip
+    type: compute.v1.address
+    properties:
+      region: us-east4
+  - name: gce-server-instance
+    type: compute.v1.instance
+    properties:
+      zone: us-east4-a
+      machineType: zones/us-east4-a/machineTypes/n1-standard-1
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            diskSizeGb: 10
+            sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20231113
+      networkInterfaces:
+        - network: global/networks/default
+          accessConfigs:
+            - name: External NAT
+              type: ONE_TO_ONE_NAT
+              natIP: $(ref.gce-server-ip.address)
+      tags:
+        items:
+          - hw10-web-server
+      serviceAccounts:
+        - email: $(ref.iam-service-account.email)
+          scopes:
+            - https://www.googleapis.com/auth/pubsub
+            - https://www.googleapis.com/auth/sqlservice.admin
+            - https://www.googleapis.com/auth/cloud-platform
+      metadata:
+        dependsOn:
+          - mini-web-bucket
+          - cloudsql-instance
+          - cloudsql-db
+          - pubsub-topic
+          - iam-policy-binding-main-bucket
+          - iam-policy-binding-mini-web-bucket
+          - iam-policy-binding-mini-web-bucket-public
+          - iam-policy-binding-cloudsql
+          - iam-policy-binding-pubsub-publish
+          - iam-policy-binding-pubsub-logging
+          - gcp-firewall
+          - gce-server-ip
+        items:
+          - key: startup-script
+            value: |
+              WEB_SERVER_GCP_BUCKET_FOLDER="gs://ds561-amahr-hw10/web-server"
+              MINI_WEB_GCP_BUCKET_FOLDER="gs://mini-web-bucket"
+              WEB_SERVER_VM_DIR="/root/web-server"
+              GCP_PROJECT_ID="ds561-amahr"
+              GCP_PUBSUB_TOPIC_ID="ds561-amahr-hw10-topic"
+
+              DB_USER="root"
+              DB_PASS="trj-RHP0hvz2kcw1yqr"
+              DB_NAME=$(ref.cloudsql-db.name)
+              DB_INSTANCE_CONN_NAME="ds561-amahr:us-east4:$(ref.cloudsql-instance.name)"
+
+              # Check if the web server directory exists
+              if [ ! -d "$WEB_SERVER_VM_DIR" ]; then
+                # Create the web server directory
+                mkdir "$WEB_SERVER_VM_DIR"
+                echo "Create the web server directory: $?"
+
+                # Download the web server files from the GCP bucket
+                gsutil cp "$WEB_SERVER_GCP_BUCKET_FOLDER/*" "$WEB_SERVER_VM_DIR"
+                echo "Download the web server files from the GCP bucket: $?"
+
+                # Install Pip
+                apt-get update -y
+                apt-get install --no-install-recommends -y python3-pip
+                echo "Install Pip: $?"
+
+                # Install the web server dependencies
+                python3 -m pip install -r "$WEB_SERVER_VM_DIR/requirements.txt"
+                echo "Install the web server dependencies: $?"
+
+                # cd into the web server directory
+                cd "$WEB_SERVER_VM_DIR"
+
+                # Make the mini web directory
+                mkdir "$WEB_SERVER_VM_DIR/files"
+                echo "Make the mini web directory: $?"
+
+                # Create the mini web files
+                python3 "$WEB_SERVER_VM_DIR/generate-content.py"
+                echo "Create the mini web files: $?"
+
+                # Upload the mini web files to the GCP bucket
+                gsutil -m cp -r "$WEB_SERVER_VM_DIR/files/" "$MINI_WEB_GCP_BUCKET_FOLDER"
+                echo "Upload the mini web files to the GCP bucket: $?"
+
+                # Delete the local mini web files
+                rm -rf "$WEB_SERVER_VM_DIR/files"
+                echo "Delete the local mini web files: $?"
+              fi
+
+              # Fetch code on each startup
+              gsutil cp "$WEB_SERVER_GCP_BUCKET_FOLDER/*" "$WEB_SERVER_VM_DIR"
+
+              # cd into the web server directory
+              cd "$WEB_SERVER_VM_DIR"
+
+              # Start the web server
+              echo "Starting the web server..."
+              PROJECT_ID="$GCP_PROJECT_ID" TOPIC_ID="$GCP_PUBSUB_TOPIC_ID" DB_USER="$DB_USER" DB_PASS="$DB_PASS" DB_NAME="$DB_NAME" DB_INSTANCE_CONN_NAME="$DB_INSTANCE_CONN_NAME" python3 main.py
+  - name: gce-listener-instance
+    type: compute.v1.instance
+    properties:
+      zone: us-east4-a
+      machineType: zones/us-east4-a/machineTypes/f1-micro
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            diskSizeGb: 10
+            sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20231113
+      networkInterfaces:
+        - network: global/networks/default
+          accessConfigs:
+            - name: External NAT
+              type: ONE_TO_ONE_NAT
+      serviceAccounts:
+        - email: $(ref.iam-service-account.email)
+          scopes:
+            - https://www.googleapis.com/auth/pubsub
+            - https://www.googleapis.com/auth/cloud-platform
+      metadata:
+        dependsOn:
+          - pubsub-subscription
+          - iam-policy-binding-pubsub-subscribe
+        items:
+          - key: startup-script
+            value: |
+              SUB_CLIENT_GCP_BUCKET_FOLDER="gs://ds561-amahr-hw10/sub-client"
+              SUB_CLIENT_VM_DIR="/root/sub-client"
+              GCP_PROJECT_ID="ds561-amahr"
+              GCP_PUBSUB_SUB_ID="ds561-amahr-hw10-subscription"
+
+              # Check if the sub client directory exists
+              if [ ! -d "$SUB_CLIENT_VM_DIR" ]; then
+                # Create the sub client directory
+                mkdir "$SUB_CLIENT_VM_DIR"
+                echo "Create the sub client directory: $?"
+
+                # Download the sub client files from the GCP bucket
+                gsutil cp "$SUB_CLIENT_GCP_BUCKET_FOLDER/*" "$SUB_CLIENT_VM_DIR"
+                echo "Download the sub client files from the GCP bucket: $?"
+
+                # Install Pip
+                apt-get update -y
+                apt-get install --no-install-recommends -y python3-pip
+                echo "Install Pip: $?"
+
+                # Install the sub client dependencies
+                python3 -m pip install -r "$SUB_CLIENT_VM_DIR/requirements.txt"
+                echo "Install the sub client dependencies: $?"
+              fi
+
+              # TEMP
+              gsutil cp "$SUB_CLIENT_GCP_BUCKET_FOLDER/*" "$SUB_CLIENT_VM_DIR"
+
+              # cd into the sub client directory
+              cd "$SUB_CLIENT_VM_DIR"
+
+              # Start the sub client
+              echo "Starting the sub client..."
+              python3 main.py --project_id $GCP_PROJECT_ID --subscription_id $GCP_PUBSUB_SUB_ID
