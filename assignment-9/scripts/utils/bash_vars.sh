@@ -12,7 +12,7 @@ export GCE_SA_EMAIL=""
 # HTTP Client - VM
 export HTTP_CLIENT_VM_NAME="$GCP_PROJECT-hw9-stress-test-vm"
 export HTTP_CLIENT_VM_REGION="us-east4"
-export HTTP_CLIENT_VM_ZONE=$STRESS_TEST_VM_REGION"-c"
+export HTTP_CLIENT_VM_ZONE=$HTTP_CLIENT_VM_REGION"-c"
 export HTTP_CLIENT_VM_TIER="n1-standard-1"
 
 # PubSub
